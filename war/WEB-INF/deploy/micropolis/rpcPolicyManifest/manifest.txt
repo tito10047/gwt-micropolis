@@ -1,0 +1,3 @@
+# Module micropolis
+# RPC service class, partial path of RPC policy file
+micropolis.client.user.LoginService, 8083B8CDFB98D0A4AAA4271ACF5E782E.gwt.rpc

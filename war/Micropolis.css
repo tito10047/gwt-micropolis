@@ -1,0 +1,31 @@
+html, body{
+	overflow: hidden;
+	margin: 0;
+}
+.gwt-MenuBar-horizontal .gwt-MenuItem {
+	padding: 0px 10px;
+}
+html,body
+{
+  height: 100%;
+  padding: 0px;
+  margin: 0px;
+}
+.gwt-ToggleButton-up, .gwt-ToggleButton-up-hovering, .gwt-ToggleButton-up-disabled, .gwt-ToggleButton-down, .gwt-ToggleButton-down-hovering, .gwt-ToggleButton-down-disabled{
+	background: none;
+	border:3px solid green;
+	padding: 0;
+}
+.gwt-ToggleButton {
+	margin-left: auto;
+	margin-right: auto;
+}
+table{
+	border-collapse: collapse;
+}
+.gwt-ToggleButton-down,.gwt-ToggleButton-down-hovering{
+	border: 3px solid silver;	
+}
+.game_info_panel, .game_info_panel table{
+	line-height: 12px;
+}

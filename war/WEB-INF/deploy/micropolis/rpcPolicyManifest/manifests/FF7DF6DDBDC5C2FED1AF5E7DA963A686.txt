@@ -1,0 +1,2 @@
+serviceClass: micropolis.client.user.LoginService
+path: 8083B8CDFB98D0A4AAA4271ACF5E782E.gwt.rpc

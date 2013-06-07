@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" output="test-classes" path="test"/>
+	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="C:/gwt/lib/google-gson-2.2.4/gson-2.2.4.jar" sourcepath="C:/gwt/lib/google-gson-2.2.4/gson-2.2.4-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/gwt/lib/google-gson-2.2.4/gson-2.2.4-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/gwt/lib/gwt-oauth2-0.2-alpha.jar"/>
+	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
+	<classpathentry kind="output" path="war/WEB-INF/classes"/>
+</classpath>
