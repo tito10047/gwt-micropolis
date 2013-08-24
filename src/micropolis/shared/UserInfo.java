@@ -41,6 +41,8 @@ public class UserInfo implements Serializable{
 	public String  locale;
 	@Persistent
 	public boolean verified_email;
+	@Persistent
+	public String hasPromo = null;
 	
 	/*@PersistenceCapable
 	public class MapInfo2 implements Serializable{ 
@@ -69,5 +71,10 @@ public class UserInfo implements Serializable{
 			maps.add(new MapInfo());
 		}
 	}
-
+	public void clearMaps(){
+		this.maps=new ArrayList<MapInfo>();
+		for (int i=0;i<MAPS_LIIMT;i++){
+			maps.add(new MapInfo());
+		}
+	}
 }

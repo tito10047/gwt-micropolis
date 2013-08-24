@@ -5,18 +5,18 @@ import micropolis.java.awt.geom.IllegalPathStateException;
 import micropolis.java.awt.geom.PathIterator;
 import micropolis.java.awt.geom.Rectangle2D;
 
-@SuppressWarnings("all")
+
 public abstract class Curve {
     public static final int INCREASING = 1;
     public static final int DECREASING = -1;
 
     protected int direction;
 
-    public static void insertMove(Vector curves, double x, double y) {
+    public static void insertMove(Vector<Curve> curves, double x, double y) {
         curves.add(new Order0(x, y));
     }
 
-    public static void insertLine(Vector curves,
+    public static void insertLine(Vector<Curve> curves,
                                   double x0, double y0,
                                   double x1, double y1)
     {
@@ -33,7 +33,7 @@ public abstract class Curve {
         }
     }
 
-    public static void insertQuad(Vector curves,
+    public static void insertQuad(Vector<Curve> curves,
                                   double x0, double y0,
                                   double coords[])
     {
@@ -56,7 +56,7 @@ public abstract class Curve {
         }
     }
 
-    public static void insertCubic(Vector curves,
+    public static void insertCubic(Vector<Curve> curves,
                                    double x0, double y0,
                                    double coords[])
     {

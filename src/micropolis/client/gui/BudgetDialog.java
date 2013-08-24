@@ -1,272 +1,326 @@
 package micropolis.client.gui;
 
+import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.dom.client.Node;
+import com.google.gwt.dom.client.Style;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.CloseHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.user.client.Element;
+import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.ui.*;
+import com.mostka.gwt.user.client.ui.NumberBox;
+import com.mostka.gwt.user.client.ui.RangeBox;
 import micropolis.client.engine.*;
 
-public class BudgetDialog {
-	Micropolis engine;
+public class BudgetDialog extends DialogBox {
+    private final NumberBox taxRateHdrInput;
+    private final HTML annualReceiptsHdr;
+    private final RangeBox fondRoadFoundingLevelHdrRange;
+    private final HTML fondRoadRequestedHdrLabel;
+    private final HTML fondRoadAllocationHdrLabel;
+    private final HTML policeRoadAllocationHdrLabel;
+    private final RangeBox policeRoadFoundingLevelHdrRange;
+    private final HTML policeRoadRequestedHdrLabel;
+    private final RangeBox fireRoadFoundingLevelHdrRange;
+    private final HTML fireRoadRequestedHdrLabel;
+    private final HTML fireRoadAllocationHdrLabel;
+    private final CheckBox autoBudgetCheck;
+    private final CheckBox pauseGameCheck;
+    private final Node closeEventTarget;
+    HTML[][] balanceLabels;
+    Micropolis engine;
 
 	//JSpinner taxRateEntry;
 	int origTaxRate;
 	double origRoadPct;
 	double origFirePct;
 	double origPolicePct;
+    private HandlerRegistration closeHandler=null;
 
-
-	private void applyChange() {
-		/*int newTaxRate = ((Number) taxRateEntry.getValue()).intValue();
-		int newRoadPct = ((Number) roadFundEntry.getValue()).intValue();
-		int newPolicePct = ((Number) policeFundEntry.getValue()).intValue();
-		int newFirePct = ((Number) fireFundEntry.getValue()).intValue();
-
-		engine.cityTax = newTaxRate;
-		engine.roadPercent = (double) newRoadPct / 100.0;
-		engine.policePercent = (double) newPolicePct / 100.0;
-		engine.firePercent = (double) newFirePct / 100.0;*/
-
-		loadBudgetNumbers(false);
-	}
-
-	private void loadBudgetNumbers(boolean updateEntries) {
-		/*BudgetNumbers b = engine.generateBudget();
-		if (updateEntries) {
-			taxRateEntry.setValue(b.taxRate);
-			roadFundEntry.setValue((int) Math.round(b.roadPercent * 100.0));
-			policeFundEntry.setValue((int) Math.round(b.policePercent * 100.0));
-			fireFundEntry.setValue((int) Math.round(b.firePercent * 100.0));
-		}
-
-		taxRevenueLbl.setText(formatFunds(b.taxIncome));
-
-		roadFundRequest.setText(formatFunds(b.roadRequest));
-		roadFundAlloc.setText(formatFunds(b.roadFunded));
-
-		policeFundRequest.setText(formatFunds(b.policeRequest));
-		policeFundAlloc.setText(formatFunds(b.policeFunded));
-
-		fireFundRequest.setText(formatFunds(b.fireRequest));
-		fireFundAlloc.setText(formatFunds(b.fireFunded));*/
-	}
-
-	static void adjustSliderSize(/*JSlider slider*/) {
-		/*Dimension sz = slider.getPreferredSize();
-		slider.setPreferredSize(new Dimension(80, sz.height));*/
-	}
-
-	public BudgetDialog(/*Window owner,*/ Micropolis engine) {
+    public BudgetDialog(Micropolis engine) {
 		/*super(owner);
 		setTitle(strings.getString("budgetdlg.title"));*/
 
-		this.engine = engine;
-		this.origTaxRate = engine.cityTax;
-		this.origRoadPct = engine.roadPercent;
-		this.origFirePct = engine.firePercent;
-		this.origPolicePct = engine.policePercent;
+        getCellElement(0, 1).getStyle().setCursor(Style.Cursor.MOVE);
+        Element dialogTopRight = getCellElement(0, 2);
+        dialogTopRight.setInnerHTML("<div style=\"margin-left:-15px;margin-top: 5px;cursor: pointer;\"><img src=\"/resources/closewindow.png\" /></div>");
+        closeEventTarget = dialogTopRight.getChild(0).getChild(0);
 
-		// give text fields of the fund-level spinners a minimum size
-		//taxRateEntry = new JSpinner(new SpinnerNumberModel(7, 0, 20, 1));
+        setEngine(engine);
 
-		// widgets to set funding levels
-		/*roadFundEntry = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
-		adjustSliderSize(roadFundEntry);
-		fireFundEntry = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
-		adjustSliderSize(fireFundEntry);
-		policeFundEntry = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
-		adjustSliderSize(policeFundEntry);*/
+        ChangeHandler changeHandler = new ChangeHandler() {
+            public void onChange(ChangeEvent event) {
+                applyChange();
+            }
+        };
 
-		/*ChangeListener change = new ChangeListener() {
-			public void stateChanged(ChangeEvent ev) {
-				applyChange();
-			}
-		};*/
-		/*taxRateEntry.addChangeListener(change);
-		roadFundEntry.addChangeListener(change);
-		fireFundEntry.addChangeListener(change);
-		policeFundEntry.addChangeListener(change);*/
+        FlexTable table = new FlexTable();
+        FlexTable.FlexCellFormatter gridFormater = table.getFlexCellFormatter();
+        table.getElement().getStyle().setTextAlign(Style.TextAlign.CENTER);
 
-		/*Box mainBox = new Box(BoxLayout.Y_AXIS);
-		mainBox.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-		add(mainBox, BorderLayout.CENTER);*/
+        int row = 0;
+        gridFormater.setColSpan(row, 0, 2);
+        gridFormater.setColSpan(row, 1, 2);
+        gridFormater.setColSpan(row, 2, 2);
+        table.setWidget(row, 1, new HTML(MainWindow.guiStrings.get("budgetdlg.tax_rate_hdr")));
+        table.setWidget(row, 2,new HTML(MainWindow.guiStrings.get("budgetdlg.annual_receipts_hdr")));
 
-		//mainBox.add(makeTaxPane());
+        row++;
+        gridFormater.setColSpan(row, 0, 2);
+        gridFormater.setColSpan(row, 1, 2);
+        gridFormater.setColSpan(row, 2, 2);
+        taxRateHdrInput = new NumberBox(0,20);
+        taxRateHdrInput.addChangeHandler(changeHandler);
+        annualReceiptsHdr = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.tax_revenue")));
+        table.setWidget(row, 1, taxRateHdrInput);
+        table.setWidget(row, 2, annualReceiptsHdr);
 
-		/*JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
-		mainBox.add(sep);*/
+        row++;
+        gridFormater.setColSpan(row, 0, 6);
+        table.setWidget(row, 0, new HTML("<hr  style=\"width:100%;\" />"));
 
-		//mainBox.add(makeFundingRatesPane());
+        row++;
+        gridFormater.setColSpan(row, 2, 2);
+        table.setWidget(row, 1, new HTML(MainWindow.guiStrings.get("budgetdlg.funding_level_hdr")));
+        table.setWidget(row, 2, new HTML(MainWindow.guiStrings.get("budgetdlg.requested_hdr")));
+        table.setWidget(row, 3,new HTML(MainWindow.guiStrings.get("budgetdlg.allocation_hdr")));
 
-		/*JSeparator sep1 = new JSeparator(SwingConstants.HORIZONTAL);
-		mainBox.add(sep1);*/
+        row++;
+        gridFormater.setColSpan(row, 2, 2);
+        fondRoadFoundingLevelHdrRange = new RangeBox(0,100);
+        fondRoadFoundingLevelHdrRange.setWidth(100+"px");
+        fondRoadFoundingLevelHdrRange.addChangeHandler(changeHandler);
+        fondRoadRequestedHdrLabel = new HTML();
+        fondRoadAllocationHdrLabel = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.road_fund")));
+        table.setWidget(row, 1, fondRoadFoundingLevelHdrRange);
+        table.setWidget(row, 2, fondRoadRequestedHdrLabel);
+        table.setWidget(row, 3, fondRoadAllocationHdrLabel);
 
-		//mainBox.add(makeBalancePane());
+        row++;
+        gridFormater.setColSpan(row, 2, 2);
+        policeRoadFoundingLevelHdrRange = new RangeBox(0,100);
+        policeRoadFoundingLevelHdrRange.setWidth(100+"px");
+        policeRoadFoundingLevelHdrRange.addChangeHandler(changeHandler);
+        policeRoadRequestedHdrLabel = new HTML();
+        policeRoadAllocationHdrLabel = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.police_fund")));
+        table.setWidget(row, 1, policeRoadFoundingLevelHdrRange);
+        table.setWidget(row, 2, policeRoadRequestedHdrLabel);
+        table.setWidget(row, 3, policeRoadAllocationHdrLabel);
 
-		/*JSeparator sep2 = new JSeparator(SwingConstants.HORIZONTAL);
-		mainBox.add(sep2);*/
+        row++;
+        gridFormater.setColSpan(row, 2, 2);
+        fireRoadFoundingLevelHdrRange = new RangeBox(0,100);
+        fireRoadFoundingLevelHdrRange.setWidth(100+"px");
+        fireRoadFoundingLevelHdrRange.addChangeHandler(changeHandler);
+        fireRoadRequestedHdrLabel = new HTML();
+        fireRoadAllocationHdrLabel = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.fire_fund")));
+        table.setWidget(row, 1, fireRoadFoundingLevelHdrRange);
+        table.setWidget(row, 2, fireRoadRequestedHdrLabel);
+        table.setWidget(row, 3, fireRoadAllocationHdrLabel);
 
-		//mainBox.add(makeOptionsPane());
+        row++;
+        gridFormater.setColSpan(row, 0, 6);
+        table.setWidget(row, 0, new HTML("<hr  style=\"width:100%;\" />"));
 
-		/*JPanel buttonPane = new JPanel();
-		add(buttonPane, BorderLayout.SOUTH);*/
+        row++;
+        gridFormater.setColSpan(row, 0, 2);
+        gridFormater.setColSpan(row, 1, 2);
+        gridFormater.setColSpan(row, 2, 2);
+        gridFormater.getElement(row,0).getStyle().setTextAlign(Style.TextAlign.RIGHT);
+        HTML periodEndingLabel = new HTML();
+        HTML periodEndingLabel2 = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.period_ending")));
+        table.setWidget(row, 1, periodEndingLabel);
+        table.setWidget(row, 2, periodEndingLabel2);
 
-		/*JButton continueBtn = new JButton(
-				strings.getString("budgetdlg.continue"));
-		continueBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				onContinueClicked();
-			}
-		});
-		buttonPane.add(continueBtn);*/
+        row++;
+        gridFormater.setColSpan(row, 0, 2);
+        gridFormater.setColSpan(row, 1, 2);
+        gridFormater.setColSpan(row, 2, 2);
+        gridFormater.getElement(row,0).getStyle().setTextAlign(Style.TextAlign.RIGHT);
+        HTML cashBeginLabel = new HTML();
+        HTML cashBeginLabel2 = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.cash_begin")));
+        table.setWidget(row, 1, cashBeginLabel);
+        table.setWidget(row, 2, cashBeginLabel2);
 
-		/*JButton resetBtn = new JButton(strings.getString("budgetdlg.reset"));
-		resetBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				onResetClicked();
-			}
-		});
-		buttonPane.add(resetBtn);*/
+        row++;
+        gridFormater.setColSpan(row, 0, 2);
+        gridFormater.setColSpan(row, 1, 2);
+        gridFormater.setColSpan(row, 2, 2);
+        gridFormater.getElement(row,0).getStyle().setTextAlign(Style.TextAlign.RIGHT);
+        HTML taxesCollectedLabel = new HTML();
+        HTML taxesCollectedLabel2 = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.taxes_collected")));
+        table.setWidget(row, 1, taxesCollectedLabel);
+        table.setWidget(row, 2, taxesCollectedLabel2);
 
-		/*loadBudgetNumbers(true);
-		setAutoRequestFocus_compat(false);
-		pack();
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setLocationRelativeTo(owner);
-		getRootPane().registerKeyboardAction(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) {
-				dispose();
-			}
-		}, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-				JComponent.WHEN_IN_FOCUSED_WINDOW);*/
+        row++;
+        gridFormater.setColSpan(row, 0, 2);
+        gridFormater.setColSpan(row, 1, 2);
+        gridFormater.setColSpan(row, 2, 2);
+        gridFormater.getElement(row,0).getStyle().setTextAlign(Style.TextAlign.RIGHT);
+        HTML capitalExpensesLabel = new HTML();
+        HTML capitalExpensesLabel2 = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.capital_expenses")));
+        table.setWidget(row, 1, capitalExpensesLabel);
+        table.setWidget(row, 2, capitalExpensesLabel2);
+
+        row++;
+        gridFormater.setColSpan(row, 0, 2);
+        gridFormater.setColSpan(row, 1, 2);
+        gridFormater.setColSpan(row, 2, 2);
+        gridFormater.getElement(row,0).getStyle().setTextAlign(Style.TextAlign.RIGHT);
+        HTML operatingExpensesLabel = new HTML();
+        HTML operatingExpensesLabel2 = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.operating_expenses")));
+        table.setWidget(row, 1, operatingExpensesLabel);
+        table.setWidget(row, 2, operatingExpensesLabel2);
+
+        row++;
+        gridFormater.setColSpan(row, 0, 2);
+        gridFormater.setColSpan(row, 1, 2);
+        gridFormater.setColSpan(row, 2, 2);
+        gridFormater.getElement(row,0).getStyle().setTextAlign(Style.TextAlign.RIGHT);
+        HTML cashEndLabel = new HTML();
+        HTML cashEndLabel2 = new HTML();
+        table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.cash_end")));
+        table.setWidget(row, 1, cashEndLabel);
+        table.setWidget(row, 2, cashEndLabel2);
+
+        balanceLabels = new HTML[][]{
+                new HTML[]{periodEndingLabel, periodEndingLabel2},
+                new HTML[]{cashBeginLabel, cashBeginLabel2},
+                new HTML[]{taxesCollectedLabel, taxesCollectedLabel2},
+                new HTML[]{capitalExpensesLabel, capitalExpensesLabel2},
+                new HTML[]{operatingExpensesLabel, operatingExpensesLabel2},
+                new HTML[]{cashEndLabel, cashEndLabel2},
+        };
+
+        row++;
+        gridFormater.setColSpan(row, 0, 6);
+        table.setWidget(row, 0, new HTML("<hr  style=\"width:100%;\" />"));
+
+        row++;
+        gridFormater.setColSpan(row, 0, 3);
+        gridFormater.setColSpan(row, 1, 3);
+        autoBudgetCheck = new CheckBox(MainWindow.guiStrings.get("budgetdlg.auto_budget"));
+        pauseGameCheck = new CheckBox(MainWindow.guiStrings.get("budgetdlg.pause_game"));
+        table.setWidget(row, 0, autoBudgetCheck);
+        table.setWidget(row, 1, pauseGameCheck);
+
+
+        row++;
+        gridFormater.setColSpan(row, 0, 3);
+        gridFormater.setColSpan(row, 1, 3);
+        Button continueButton = new Button(MainWindow.guiStrings.get("budgetdlg.continue"));
+        Button resetButton = new Button(MainWindow.guiStrings.get("budgetdlg.reset"));
+        table.setWidget(row, 0, continueButton);
+        table.setWidget(row, 1, resetButton);
+
+        continueButton.addClickHandler(new ClickHandler() {
+            public void onClick(ClickEvent event) {
+                onContinueClicked();
+            }
+        });
+        resetButton.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                onResetClicked();
+            }
+        });
+        add(table);
+    }
+
+    public void show(CloseHandler<PopupPanel> closeHandler) {
+        if (this.closeHandler != null) {
+            this.closeHandler.removeHandler();
+        }
+        this.closeHandler = addCloseHandler(closeHandler);
+        loadBudgetNumbers(true);
+        loadBalance();
+        show();
+    }
+
+	private void applyChange() {
+		int newTaxRate = (int)(double) taxRateHdrInput.getValue();
+		int newRoadPct = (int)(double) fondRoadFoundingLevelHdrRange.getValue();
+		int newPolicePct = (int)(double) policeRoadFoundingLevelHdrRange.getValue();
+		int newFirePct = (int)(double) fireRoadFoundingLevelHdrRange.getValue();
+
+		engine.cityTax = checkRange(newTaxRate,0,20);
+		engine.roadPercent = (double) checkRange(newRoadPct,0,100) / 100.0;
+		engine.policePercent = (double) checkRange(newPolicePct,0,100) / 100.0;
+		engine.firePercent = (double) checkRange(newFirePct,0,100) / 100.0;
+
+		loadBudgetNumbers(false);
 	}
+    private int checkRange(int val, int min, int max){
+        return Math.max(min,Math.min(max, val));
+    }
 
-	private void setAutoRequestFocus_compat(boolean v) {
-		/*try {
-			if (super.getClass()
-					.getMethod("setAutoRequestFocus", boolean.class) != null) {
-				super.setAutoRequestFocus(v);
-			}
-		} catch (NoSuchMethodException e) {
-			// ok to ignore
-		}*/
-	}
+	private void loadBudgetNumbers(boolean updateEntries) {
+		BudgetNumbers b = engine.generateBudget();
+		if (updateEntries) {
+            taxRateHdrInput.setText(b.taxRate + "");
+			fondRoadFoundingLevelHdrRange.setValue((double) Math.round(b.roadPercent * 100.0));
+			policeRoadFoundingLevelHdrRange.setValue((double) Math.round(b.policePercent * 100.0));
+			fireRoadFoundingLevelHdrRange.setValue((double) Math.round(b.firePercent * 100.0));
+		}
+        annualReceiptsHdr.setText("$"+b.taxIncome);
 
-	private void makeFundingRatesPane() {
-		/*JPanel fundingRatesPane = new JPanel(new GridBagLayout());
-		fundingRatesPane.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));*/
+        fondRoadRequestedHdrLabel.setText("$" + b.roadRequest);
+        fondRoadAllocationHdrLabel.setText("$" + b.roadFunded);
 
-		/*GridBagConstraints c0 = new GridBagConstraints();
-		c0.gridx = 0;
-		c0.weightx = 0.25;
-		c0.anchor = GridBagConstraints.WEST;
-		GridBagConstraints c1 = new GridBagConstraints();
-		c1.gridx = 1;
-		c1.weightx = 0.25;
-		c1.anchor = GridBagConstraints.EAST;
-		GridBagConstraints c2 = new GridBagConstraints();
-		c2.gridx = 2;
-		c2.weightx = 0.5;
-		c2.anchor = GridBagConstraints.EAST;
-		GridBagConstraints c3 = new GridBagConstraints();
-		c3.gridx = 3;
-		c3.weightx = 0.5;
-		c3.anchor = GridBagConstraints.EAST;*/
+        policeRoadRequestedHdrLabel.setText("$"+b.policeRequest);
+        policeRoadAllocationHdrLabel.setText("$"+b.policeFunded);
 
-		/*c1.gridy = c2.gridy = c3.gridy = 0;
-		fundingRatesPane.add(
-				new JLabel(strings.getString("budgetdlg.funding_level_hdr")),
-				c1);
-		fundingRatesPane.add(
-				new JLabel(strings.getString("budgetdlg.requested_hdr")), c2);
-		fundingRatesPane.add(
-				new JLabel(strings.getString("budgetdlg.allocation_hdr")), c3);*/
-
-		/*c0.gridy = c1.gridy = c2.gridy = c3.gridy = 1;
-		fundingRatesPane.add(
-				new JLabel(strings.getString("budgetdlg.road_fund")), c0);
-		fundingRatesPane.add(roadFundEntry, c1);
-		fundingRatesPane.add(roadFundRequest, c2);
-		fundingRatesPane.add(roadFundAlloc, c3);*/
-
-		/*c0.gridy = c1.gridy = c2.gridy = c3.gridy = 2;
-		fundingRatesPane.add(
-				new JLabel(strings.getString("budgetdlg.police_fund")), c0);
-		fundingRatesPane.add(policeFundEntry, c1);
-		fundingRatesPane.add(policeFundRequest, c2);
-		fundingRatesPane.add(policeFundAlloc, c3);*/
-
-		/*c0.gridy = c1.gridy = c2.gridy = c3.gridy = 3;
-		fundingRatesPane.add(
-				new JLabel(strings.getString("budgetdlg.fire_fund")), c0);
-		fundingRatesPane.add(fireFundEntry, c1);
-		fundingRatesPane.add(fireFundRequest, c2);
-		fundingRatesPane.add(fireFundAlloc, c3);*/
-
-		//return fundingRatesPane;
-	}
-
-	private void makeOptionsPane() {
-		/*JPanel optionsPane = new JPanel(new GridBagLayout());
-		optionsPane.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));*/
-
-		/*GridBagConstraints c0 = new GridBagConstraints();
-		GridBagConstraints c1 = new GridBagConstraints();*/
-
-		/*c0.gridx = 0;
-		c1.gridx = 1;
-		c0.anchor = c1.anchor = GridBagConstraints.WEST;
-		c0.gridy = c1.gridy = 0;
-		c0.weightx = c1.weightx = 0.5;
-		optionsPane.add(autoBudgetBtn, c0);
-		optionsPane.add(pauseBtn, c1);*/
-
-		/*autoBudgetBtn.setSelected(engine.autoBudget);
-		pauseBtn.setSelected(engine.simSpeed == Speed.PAUSED);*/
-
-		//return optionsPane;
-	}
-
-	private void makeTaxPane() {
-		/*JPanel pane = new JPanel(new GridBagLayout());
-		pane.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));*/
-
-		/*GridBagConstraints c0 = new GridBagConstraints();
-		GridBagConstraints c1 = new GridBagConstraints();
-		GridBagConstraints c2 = new GridBagConstraints();*/
-
-		/*c0.gridx = 0;
-		c0.anchor = GridBagConstraints.WEST;
-		c0.weightx = 0.25;
-		c1.gridx = 1;
-		c1.anchor = GridBagConstraints.EAST;
-		c1.weightx = 0.25;
-		c2.gridx = 2;
-		c2.anchor = GridBagConstraints.EAST;
-		c2.weightx = 0.5;*/
-
-		/*c0.gridy = c1.gridy = c2.gridy = 0;
-		pane.add(new JLabel(strings.getString("budgetdlg.tax_rate_hdr")), c1);
-		pane.add(
-				new JLabel(strings.getString("budgetdlg.annual_receipts_hdr")),
-				c2);*/
-
-		/*c0.gridy = c1.gridy = c2.gridy = 1;
-		pane.add(new JLabel(strings.getString("budgetdlg.tax_revenue")), c0);
-		pane.add(taxRateEntry, c1);
-		pane.add(taxRevenueLbl, c2);*/
-
-		//return pane;
+        fireRoadRequestedHdrLabel.setText("$"+b.fireRequest);
+        fireRoadAllocationHdrLabel.setText("$"+b.fireFunded);
 	}
 
 	private void onContinueClicked() {
-		/*if (autoBudgetBtn.isSelected() != engine.autoBudget) {
+
+		if (autoBudgetCheck.getValue() != engine.autoBudget) {
 			engine.toggleAutoBudget();
 		}
-		if (pauseBtn.isSelected() && engine.simSpeed != Speed.PAUSED) {
+		if (pauseGameCheck.getValue() && engine.simSpeed != Speed.PAUSED) {
 			engine.setSpeed(Speed.PAUSED);
-		} else if (!pauseBtn.isSelected() && engine.simSpeed == Speed.PAUSED) {
+		} else if (!pauseGameCheck.getValue() && engine.simSpeed == Speed.PAUSED) {
 			engine.setSpeed(Speed.NORMAL);
-		}*/
+		}
 
-		//dispose();
+		hide();
 	}
+
+    private void loadBalance(){
+        int x=-1;
+        for (int i = 0; i < 2; i++) {
+
+            if (i + 1 >= engine.financialHistory.size()) {
+                break;
+            }
+            Micropolis.FinancialHistory f = engine.financialHistory.get(i);
+            Micropolis.FinancialHistory fPrior = engine.financialHistory.get(i+1);
+            int cashFlow = f.totalFunds - fPrior.totalFunds;
+            int capExpenses = -(cashFlow - f.taxIncome + f.operatingExpenses);
+            int y=0;x++;
+            balanceLabels[y++][x].setText(formatGameDate(f.cityTime-1));
+            balanceLabels[y++][x].setText(formatFunds(f.totalFunds));
+            balanceLabels[y++][x].setText(formatFunds(f.taxIncome));
+            balanceLabels[y++][x].setText(formatFunds(capExpenses));
+            balanceLabels[y++][x].setText(formatFunds(f.operatingExpenses));
+            balanceLabels[y][x].setText(formatFunds(f.totalFunds));
+        }
+    }
 
 	private void onResetClicked() {
 		engine.cityTax = this.origTaxRate;
@@ -276,93 +330,37 @@ public class BudgetDialog {
 		loadBudgetNumbers(true);
 	}
 
-	private void makeBalancePane() {
-		/*JPanel balancePane = new JPanel(new GridBagLayout());
-		balancePane.setBorder(BorderFactory.createEmptyBorder(8, 24, 8, 24));*/
 
-		/*GridBagConstraints c0 = new GridBagConstraints();
-		GridBagConstraints c1 = new GridBagConstraints();*/
+    public void setEngine(Micropolis engine) {
+        this.engine = engine;
+        this.origTaxRate = engine.cityTax;
+        this.origRoadPct = engine.roadPercent;
+        this.origFirePct = engine.firePercent;
+        this.origPolicePct = engine.policePercent;
+    }
+    @Override
+    protected void onPreviewNativeEvent(Event.NativePreviewEvent event) {
+        NativeEvent nativeEvent = event.getNativeEvent();
 
-		/*c0.anchor = GridBagConstraints.WEST;
-		c0.weightx = 0.5;
-		c0.gridx = 0;
-		c0.gridy = 0;*/
-
-		/*JLabel thLbl = new JLabel(strings.getString("budgetdlg.period_ending"));
-		Font origFont = thLbl.getFont();
-		Font headFont = origFont.deriveFont(Font.ITALIC);
-		thLbl.setFont(headFont);
-		thLbl.setForeground(Color.MAGENTA);
-		balancePane.add(thLbl, c0);*/
-
-		/*c0.gridy++;
-		balancePane.add(new JLabel(strings.getString("budgetdlg.cash_begin")),
-				c0);
-		c0.gridy++;
-		balancePane.add(
-				new JLabel(strings.getString("budgetdlg.taxes_collected")), c0);
-		c0.gridy++;
-		balancePane
-				.add(new JLabel(strings.getString("budgetdlg.capital_expenses")),
-						c0);
-		c0.gridy++;
-		balancePane.add(
-				new JLabel(strings.getString("budgetdlg.operating_expenses")),
-				c0);
-		c0.gridy++;
-		balancePane
-				.add(new JLabel(strings.getString("budgetdlg.cash_end")), c0);*/
-
-		/*c1.anchor = GridBagConstraints.EAST;
-		c1.weightx = 0.25;
-		c1.gridx = 0;*/
-
-		for (int i = 0; i < 2; i++) {
-
-			if (i + 1 >= engine.financialHistory.size()) {
-				break;
-			}
-
-			Micropolis.FinancialHistory f = engine.financialHistory.get(i);
-			Micropolis.FinancialHistory fPrior = engine.financialHistory
-					.get(i + 1);
-			int cashFlow = f.totalFunds - fPrior.totalFunds;
-			int capExpenses = -(cashFlow - f.taxIncome + f.operatingExpenses);
-
-			/*c1.gridx++;
-			c1.gridy = 0;
-
-			thLbl = new JLabel(formatGameDate(f.cityTime - 1));
-			thLbl.setFont(headFont);
-			thLbl.setForeground(Color.MAGENTA);
-			balancePane.add(thLbl, c1);*/
-
-			/*c1.gridy++;
-			JLabel previousBalanceLbl = new JLabel();
-			previousBalanceLbl.setText(formatFunds(fPrior.totalFunds));
-			balancePane.add(previousBalanceLbl, c1);*/
-
-			/*c1.gridy++;
-			JLabel taxIncomeLbl = new JLabel();
-			taxIncomeLbl.setText(formatFunds(f.taxIncome));
-			balancePane.add(taxIncomeLbl, c1);*/
-
-			/*c1.gridy++;
-			JLabel capExpensesLbl = new JLabel();
-			capExpensesLbl.setText(formatFunds(capExpenses));
-			balancePane.add(capExpensesLbl, c1);*/
-
-			/*c1.gridy++;
-			JLabel opExpensesLbl = new JLabel();
-			opExpensesLbl.setText(formatFunds(f.operatingExpenses));
-			balancePane.add(opExpensesLbl, c1);*/
-
-			/*c1.gridy++;
-			JLabel newBalanceLbl = new JLabel();
-			newBalanceLbl.setText(formatFunds(f.totalFunds));
-			balancePane.add(newBalanceLbl, c1);*/
-		}
-
-		//return balancePane;
-	}
+        if (!event.isCanceled()
+                && (event.getTypeInt() == Event.ONCLICK)
+                && isCloseEvent(nativeEvent))
+        {
+            this.hide();
+        }
+        super.onPreviewNativeEvent(event);
+    }
+    private boolean isCloseEvent(NativeEvent event) {
+        return event.getEventTarget().equals(closeEventTarget);
+    }
+    public static String formatGameDate(int cityTime)
+    {
+        int year = 1990 + cityTime/48;
+        int month = (cityTime%48)/4 + 1;
+        int day =  (cityTime%4)*7 + 1;
+        return day+"."+month+" "+year;
+    }
+    public static String formatFunds(Integer funds) {
+        return MainWindow.guiStrings.format("funds", funds);
+    }
 }

@@ -1,10 +1,12 @@
 package micropolis.client.gui;
 
 import com.google.gwt.resources.client.ClientBundle;
+import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.ImageResource;
 
 public interface ImagesBundle extends ClientBundle{
-	@Source("micropolis/resources/icdozr.png") 
+
+    @Source("micropolis/resources/icdozr.png")
 	ImageResource tool_BULLDOZER_icon();
 	@Source("micropolis/resources/icdozrhi.png") 
 	ImageResource tool_BULLDOZER_selected_icon();
@@ -74,4 +76,13 @@ public interface ImagesBundle extends ClientBundle{
 	
 	@Source("micropolis/resources/google_login_butt.png") 
 	ImageResource google_login_butt();
+
+    @Source("micropolis/resources/minimize.png")
+    ImageResource minimize();
+    @Source("micropolis/resources/unminimize.png")
+    ImageResource unminimize();
+    @Source("micropolis/resources/minimize-left.png")
+    ImageResource minimizeLeft();
+    @Source("micropolis/resources/unminimize-left.png")
+    ImageResource unminimizeLeft();
 }

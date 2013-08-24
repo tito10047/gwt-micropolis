@@ -55,10 +55,12 @@ public interface Map {
 	public void setAutoGo(boolean autoGo);
 	public short getCityTax();
 	public void setCityTax(short cityTax) ;
-	public int getPolicePercent();
-	public void setPolicePercent(int policePercent);
-	public int getFirePercent();
-	public void setFirePercent(int firePercent);
-	public int getRoadPercent();
-	public void setRoadPercent(int roadPercent);
+	public short getPolicePercent();
+	public void setPolicePercent(short policePercent);
+	public short getFirePercent();
+	public void setFirePercent(short firePercent);
+	public short getRoadPercent();
+	public void setRoadPercent(short roadPercent);
+	public void setMapPreview(String data);
+	public String getMapPreview();
 }

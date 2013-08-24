@@ -2,6 +2,8 @@ package micropolis.client.gui;
 
 import java.util.HashMap;
 
+import com.google.gwt.event.logical.shared.*;
+import com.google.gwt.user.client.ui.*;
 import micropolis.client.engine.CityLocation;
 import micropolis.client.engine.Disaster;
 import micropolis.client.engine.EarthquakeListener;
@@ -18,9 +20,11 @@ import micropolis.client.user.LoginService;
 import micropolis.client.user.LoginServiceAsync;
 import micropolis.java.awt.Rectangle;
 import micropolis.shared.Map;
+import micropolis.shared.MapPreview;
 import micropolis.shared.UserInfo;
 
 import com.google.gwt.canvas.client.Canvas;
+import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.NativeEvent;
@@ -36,10 +40,6 @@ import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseOutHandler;
 import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.google.gwt.event.logical.shared.CloseEvent;
-import com.google.gwt.event.logical.shared.CloseHandler;
-import com.google.gwt.event.logical.shared.ResizeEvent;
-import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DOM;
@@ -48,26 +48,15 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.Window.ClosingEvent;
 import com.google.gwt.user.client.Window.ClosingHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.AbsolutePanel;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.FlexTable.FlexCellFormatter;
-import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.MenuBar;
-import com.google.gwt.user.client.ui.MenuItem;
-import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.ScrollPanel;
-import com.google.gwt.user.client.ui.ToggleButton;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 public class MainWindow extends AbsolutePanel implements Micropolis.Listener, EarthquakeListener {
-	Micropolis engine;
+	
+	public static int PREVIEW_WIDTH = 150;
+	public static int PREVIEW_HEIGHT = 125;
+	
+    private final BudgetDialog budgedDialog;
+    Micropolis engine;
 
 	public static GuiStrings guiStrings = new GuiStrings();
 	public static ImagesBundle images = GWT.create(ImagesBundle.class);
@@ -97,6 +86,7 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 	private HashMap<MicropolisTool, ToggleButton> toolBtns;
 
 	private MicropolisTool currentTool;
+    private boolean minimapMinimized = false;
 	
 	public MainWindow() {
 		this(new Micropolis());
@@ -110,9 +100,11 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 
 	private boolean mouseDrag;
 
-	@SuppressWarnings("deprecation")
 	public MainWindow(Micropolis engine) {
-
+		if (micropolis.client.Micropolis.isDevelopmentMode()){
+			PREVIEW_WIDTH = 60;
+			PREVIEW_HEIGHT = 50;
+		}
 		this.engine = engine;
 
 		DOM.setStyleAttribute(getElement(), "overflow", "visible");  
@@ -134,6 +126,10 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		//scPanel.getElement().getStyle().setOverflowY(Overflow.HIDDEN);
 		add(scPanel,0,20);
 		scPanel.add(canvas);
+		canvas.getElement().setAttribute("ondragstart", "return false;");
+		canvas.getElement().setAttribute("ondrop", "return false;");
+		canvas.getElement().setAttribute("onselectstart", "return false;");
+		
 
 		scPanel.setSize((w+18)+"px",( h -20+21)+"px");
 		drawingArea = new MicropolisDrawingArea(engine,canvas);
@@ -141,18 +137,27 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		mouseDrag = false;
 		canvas.addMouseDownHandler(new MouseDownHandler() {
 			public void onMouseDown(MouseDownEvent event) {
+				if (event.getNativeButton() == NativeEvent.BUTTON_MIDDLE){
+					return;
+				}
 				mouseDrag = true;
 				onToolDown(event);
 			}
 		});
 		canvas.addMouseUpHandler(new MouseUpHandler() {
 			public void onMouseUp(MouseUpEvent event) {
+				if (event.getNativeButton() == NativeEvent.BUTTON_MIDDLE){
+					return;
+				}
 				mouseDrag = false;
 				onToolUp(event);
 			}
 		});
 		canvas.addMouseMoveHandler(new MouseMoveHandler() {
 			public void onMouseMove(MouseMoveEvent event) {
+				if (event.getNativeButton() == NativeEvent.BUTTON_MIDDLE){
+					return;
+				}
 				if (mouseDrag){
 					onToolDrag(event);
 				}else{
@@ -166,20 +171,24 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 				onToolExited(event);
 			}
 		});
-		
-		makeMenu();
+
 		HTML versionBox = new HTML(micropolis.client.Micropolis.version);
-		add(versionBox,RootPanel.get().getOffsetWidth()-200,0);
-		add(makeToolbar(),0,20);
+		add(versionBox,RootPanel.get().getOffsetWidth()-180,0);
+        Anchor googlePlusLink = new Anchor("Google+","https://plus.google.com/106560435384632107269");
+        googlePlusLink.getElement().setAttribute("rel","publisher");
+        add(googlePlusLink, RootPanel.get().getOffsetWidth() - 250, 0);
+
+        add(makeToolbar(), 0, 20);
+        makeMenu();
 
 		graphsPane = new GraphsPane(engine);
 		evaluationPane = new EvaluationPane(engine);
 
 		final HorizontalPanel gameInfoPanel = new HorizontalPanel(); 
 		gameInfoPanel.setWidth("180px");
-		gameInfoPanel.getElement().getStyle().setBackgroundColor("red");
+		//gameInfoPanel.getElement().getStyle().setBackgroundColor("#f5f6fa");
+		gameInfoPanel.setStyleName("game-info-panel");
 		gameInfoPanel.ensureDebugId("gameInfoPanel");
-		gameInfoPanel.getElement().addClassName("game_info_panel");
 		
 		canvas = Canvas.createIfSupported();
 		if (canvas == null){
@@ -191,14 +200,30 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		demandInd.setEngine(engine);
 		gameInfoPanel.add(makeDateFunds());
 		
-		add(gameInfoPanel,RootPanel.get().getOffsetWidth()-180,20);
+		add(gameInfoPanel,RootPanel.get().getOffsetWidth()-190,20);
 		
-		VerticalPanel mapViewContainer = new VerticalPanel();
-		mapViewContainer.getElement().getStyle().setBackgroundColor("red");
+		final VerticalPanel mapViewContainer = new VerticalPanel();
+		//mapViewContainer.getElement().getStyle().setBackgroundColor("#f5f6fa");
+		mapViewContainer.setStyleName("map-view-container");
 		
 		MenuBar menu = new MenuBar();
 		menu.setWidth("100%");
 		mapViewContainer.add(menu);
+
+        ToggleButton minimizeMapButton = new ToggleButton(new Image(images.minimize()), new Image(images.unminimize()),new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                ToggleButton butt = (ToggleButton) event.getSource();
+                if (butt.isDown()){
+                    setWidgetPosition(mapViewContainer, -335, RootPanel.get().getOffsetHeight()-20);
+                }else{
+                    setWidgetPosition(mapViewContainer, 0, RootPanel.get().getOffsetHeight()-300-20);
+                }
+                minimapMinimized=!minimapMinimized;
+            }
+        });
+        mapViewContainer.add(minimizeMapButton);
+        minimizeMapButton.getElement().addClassName("minimize-button");
 		
 		MenuBar zonesMenu = new MenuBar(true);
 		menu.addItem(new MenuItem(guiStrings.get("menu.zones"), zonesMenu));
@@ -228,7 +253,7 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		mapMenu.add(mapLegendLbl);*/
 
 		final Canvas mapViewCanvas = Canvas.createIfSupported();
-		if (canvas == null){
+		if (mapViewCanvas == null){
 			Window.alert("canvs not suported");
 		}
 		mapViewCanvas.setWidth("360px");
@@ -236,8 +261,9 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 
 		mapViewCanvas.setHeight("300px");
 		mapViewCanvas.setCoordinateSpaceHeight(300);
-		add(mapViewCanvas, 0, RootPanel.get().getOffsetHeight()-300);
-		mapViewCanvas.getElement().getStyle().setProperty("border", "2px solid black");
+		add(mapViewContainer, 0, RootPanel.get().getOffsetHeight()-300-20);
+		mapViewContainer.add(mapViewCanvas);
+		mapViewContainer.getElement().getStyle().setProperty("border", "2px solid black");
 		
 		mapView = new OverlayMapView(engine,mapViewCanvas);
 		/*mapView.connectView(drawingArea, drawingAreaScroll);
@@ -245,8 +271,19 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 
 		//setMapState(MapState.ALL);
 
+        budgedDialog = new BudgetDialog(engine);
+        budgedDialog.setText(guiStrings.get("budgetdlg.title"));
 
-		messagesPane = new MessagesPane();
+		messagesPane = new MessagesPane(new MinimizedHandler() {
+            @Override
+            public void onChange(boolean isMinimized) {
+               if (isMinimized){
+                   setWidgetPosition(messagesPane,RootPanel.get().getOffsetWidth()-25,RootPanel.get().getOffsetHeight()-20);
+               }else{
+                   setWidgetPosition(messagesPane,RootPanel.get().getOffsetWidth()-MessagesPane.WIDTH,RootPanel.get().getOffsetHeight()-MessagesPane.HEIGHT);
+               }
+            }
+        });
 		add(messagesPane,RootPanel.get().getOffsetWidth()-MessagesPane.WIDTH,RootPanel.get().getOffsetHeight()-MessagesPane.HEIGHT);
 
 		notificationPane = new NotificationPane(engine);
@@ -255,11 +292,19 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		Window.addResizeHandler(new ResizeHandler() {
 			public void onResize(ResizeEvent event) {
 				int height = event.getHeight();
-				setWidgetPosition(messagesPane,RootPanel.get().getOffsetWidth()-MessagesPane.WIDTH,RootPanel.get().getOffsetHeight()-MessagesPane.HEIGHT);
+                if (messagesPane.isMinimized()){
+                    setWidgetPosition(messagesPane,RootPanel.get().getOffsetWidth()-25,RootPanel.get().getOffsetHeight()-20);
+                }else{
+				    setWidgetPosition(messagesPane,RootPanel.get().getOffsetWidth()-MessagesPane.WIDTH,RootPanel.get().getOffsetHeight()-MessagesPane.HEIGHT);
+                }
 				setWidgetPosition(gameInfoPanel,RootPanel.get().getOffsetWidth()-180,20);
 				setWidgetPosition(notificationPane,RootPanel.get().getOffsetWidth()-(MessagesPane.WIDTH+notificationPane.WIDTH),RootPanel.get().getOffsetHeight()-notificationPane.HEIGHT);
 				scPanel.setSize(RootPanel.get().getOffsetWidth()+20+"px",( RootPanel.get().getOffsetHeight()-20+21)+"px");
-				setWidgetPosition(mapViewCanvas, 0, RootPanel.get().getOffsetHeight()-300);
+                if (minimapMinimized){
+                    setWidgetPosition(mapViewContainer, -335, RootPanel.get().getOffsetHeight()-20);
+                }else{
+				    setWidgetPosition(mapViewContainer, 0, RootPanel.get().getOffsetHeight()-300-20);
+                }
 			}
 		});
 
@@ -307,6 +352,7 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		if (engine != null) { // new engine
 			engine.addListener(this);
 			engine.addEarthquakeListener(this);
+            budgedDialog.setEngine(engine);
 		}
 
 		boolean timerEnabled = isTimerActive();
@@ -379,7 +425,7 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 
 	Grid makeDateFunds() {
 		Grid grid = new Grid(3, 2);
-		grid.setWidth("140px");
+		grid.setWidth("150px");
 		grid.getColumnFormatter().setWidth(0, "80px");
 		grid.setWidget(0, 0, new HTML(guiStrings.get("main.date_label")));
 		grid.setWidget(1, 0, new HTML(guiStrings.get("main.funds_label")));
@@ -419,7 +465,7 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 				onSaveCityClicked();
 			}
 		});
-		gameMenu.addItem(guiStrings.get("menu.game.save_as"),new Command() {
+		/*gameMenu.addItem(guiStrings.get("menu.game.save_as"),new Command() {
 			public void execute() {
 				onSaveCityAsClicked();
 			}
@@ -428,7 +474,7 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 			public void execute() {
 				closeWindow();
 			}
-		});
+		});*/
 
 		MenuBar optionMenu = new MenuBar(true);
 		menu.addItem(new MenuItem(guiStrings.get("menu.options"), optionMenu));
@@ -467,11 +513,11 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 				onDisastersClicked();
 			}
 		});
-		optionMenu.addItem(guiStrings.get("menu.options.sound"),new Command() {
+		/*optionMenu.addItem(guiStrings.get("menu.options.sound"),new Command() {
 			public void execute() {
 				onSoundClicked();
 			}
-		});
+		});*/
 
 		MenuBar disastersMenu = new MenuBar(true);
 		menu.addItem(new MenuItem(guiStrings.get("menu.disasters"), disastersMenu));
@@ -540,7 +586,7 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 			public void execute() {
 				onViewBudgetClicked();
 			}
-		});
+		});/*
 		windowsMenu.addItem(guiStrings.get("menu.windows.evaluation"),new Command() {
 			public void execute() {
 				onViewEvaluationClicked();
@@ -550,13 +596,18 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 			public void execute() {
 				onViewGraphClicked();
 			}
-		});
+		});*/
 		
 		MenuBar helpMenu = new MenuBar(true);
 		menu.addItem(new MenuItem(guiStrings.get("menu.help"), helpMenu));
-		helpMenu.addItem(guiStrings.get("menu.help.launch-translation-tool"),new Command() {
+		/*helpMenu.addItem(guiStrings.get("menu.help.launch-translation-tool"),new Command() {
 			public void execute() {
 				onLaunchTranslationToolClicked();
+			}
+		});*/
+		helpMenu.addItem("Use promo code",new Command() {
+			public void execute() {
+				onUsePromoCodeClicked();
 			}
 		});
 		helpMenu.addItem(guiStrings.get("menu.help.about"),new Command() {
@@ -571,7 +622,6 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 	}
 
 	private void onAutoBudgetClicked() {
-		Window.alert("not implemented yet");
 		dirty1 = true;
 		//getEngine().toggleAutoBudget();
 	}
@@ -579,11 +629,15 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 	private void onAutoBulldozeClicked() {
 		dirty1 = true;
 		getEngine().toggleAutoBulldoze();
+		String onOff = (getEngine().autoBulldoze?"on":"off");
+		messagesPane.appendMessageText(guiStrings.get("menu.options.auto_bulldoze")+":"+guiStrings.get(onOff));
 	}
 
 	private void onDisastersClicked() {
 		dirty1 = true;
 		getEngine().toggleDisasters();
+		String onOff = (getEngine().noDisasters==false?"on":"off");
+		messagesPane.appendMessageText(guiStrings.get("menu.options.disasters")+":"+guiStrings.get(onOff));
 	}
 
 	static final String SOUNDS_PREF = "enable_sounds";
@@ -627,10 +681,60 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 			});
 			return false;
 		}
+		LoginServiceAsync loginService = GWT.create(LoginService.class);
+		final MainWindow self = this;
+		loginService.getMapPreviews(new AsyncCallback<MapPreview[]>() {
+			
+			@Override
+			public void onSuccess(MapPreview[] maps) {
+				LoadCityDialog dialog = new LoadCityDialog(self, maps,true, new SelectCityHandler() {
+					public void onSelect(int pos) {
+						if (pos>=0){
+							String name = Window.prompt("Name of your city", micropolis.client.Micropolis.userInfo.maps.get(pos).name);
+							save(pos,name);
+						}
+					}
+				});
+				dialog.show();
+				dialog.center();
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+				Window.alert("not loaded");
+			}
+		});
+
+		return false;
+	}
+	
+	private void save(int pos, String name){
 		Map map = new Map();
 		engine.save(map);
+		Canvas src = drawingArea.getCanvas();
+		Canvas dst = Canvas.createIfSupported();
+		
+		dst.setWidth(PREVIEW_WIDTH + "px");
+		dst.setCoordinateSpaceWidth(PREVIEW_WIDTH);
+		dst.setHeight(PREVIEW_HEIGHT + "px");
+		dst.setCoordinateSpaceHeight(PREVIEW_HEIGHT);
+		
+		dst.getContext2d().drawImage(src.getCanvasElement(), 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+		
+		ImageData data = dst.getContext2d().getImageData(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+		char[] chars = new char[PREVIEW_WIDTH*PREVIEW_HEIGHT*3];
+		int s=0;
+		for (int i = 0; i < PREVIEW_WIDTH; i++) {
+			for (int j = 0; j < PREVIEW_HEIGHT; j++) {
+				chars[s+0]=(char)data.getRedAt(i, j);
+				chars[s+1]=(char)data.getGreenAt(i, j);
+				chars[s+2]=(char)data.getBlueAt(i, j);
+				s+=3;
+			}
+		}
+		map.setMapPreview(String.valueOf(chars));
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
-		loginService.saveMap(map, 0, "testMap", new AsyncCallback<Boolean>() {
+		loginService.saveMap(map, pos, name, new AsyncCallback<Boolean>() {
 			public void onSuccess(Boolean result) {
 				Window.alert((result?"Saved":"NOT SAVED"));
 			}
@@ -638,24 +742,6 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 				Window.alert("some is wrong with saving\n"+caught.getMessage());
 			}
 		});
-		
-		//Window.alert("not implemented yet");
-		/*if (currentFile == null) {
-			return onSaveCityAsClicked();
-		}
-
-		try {
-			getEngine().save(currentFile);
-			makeClean();
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace(System.err);
-			JOptionPane.showMessageDialog(this, e,
-					strings.getString("main.error_caption"),
-					JOptionPane.ERROR_MESSAGE);
-			return false;
-		}*/
-		return false;
 	}
 
 	static final String EXTENSION = "cty";
@@ -689,12 +775,16 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		}
 		return false;
 	}
+	
+	public void loadGame(){
+		onLoadGameClicked();
+	}
 
 	private void onLoadGameClicked() {
 		if (micropolis.client.Micropolis.userInfo.logined==false){
 			micropolis.client.Micropolis.loginUser(new Callback<UserInfo, Throwable>() {
 				public void onSuccess(UserInfo result) {
-					if (result!=null && result.logined==true){
+					if (result!=null && result.logined==true && micropolis.client.Micropolis.userInfo.logined==true){
 						onLoadGameClicked();
 					}
 				}
@@ -703,9 +793,43 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 			});
 			return;
 		}
-		
+
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
-		loginService.getMap(0, new AsyncCallback<Map>() {
+		final MainWindow self = this;
+		stopTimer();
+		loginService.getMapPreviews(new AsyncCallback<MapPreview[]>() {
+			
+			@Override
+			public void onSuccess(MapPreview[] maps) {
+				LoadCityDialog dialog = new LoadCityDialog(self, maps,false, new SelectCityHandler() {
+					public void onSelect(int pos) {
+						if (pos>=0){
+							load(pos);
+						}
+					}
+				});
+				dialog.show();
+				dialog.center();
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+				Window.alert("not loaded");
+			}
+		});
+		return;
+		/*
+		
+		// check if user wants to save their current city
+		if (!maybeSaveCity()) {
+			return;
+		}*/
+
+	}
+	
+	private void load(int pos){
+		LoginServiceAsync loginService = GWT.create(LoginService.class);
+		loginService.getMap(pos, new AsyncCallback<Map>() {
 			
 			@Override
 			public void onSuccess(Map map) {
@@ -732,37 +856,8 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 				Window.alert("some is wrong with saving\n"+caught.getMessage());
 			}
 		});
-		
-		// check if user wants to save their current city
-		if (!maybeSaveCity()) {
-			return;
-		}
-
-		try {
-			/*JFileChooser fc = new JFileChooser();
-			FileNameExtensionFilter filter1 = new FileNameExtensionFilter(
-					strings.getString("cty_file"), EXTENSION);
-			fc.setFileFilter(filter1);
-
-			stopTimer();
-			int rv = fc.showOpenDialog(this);
-			startTimer();
-
-			if (rv == JFileChooser.APPROVE_OPTION) {
-				File file = fc.getSelectedFile();
-				Micropolis newEngine = new Micropolis();
-				newEngine.load(file);
-				setEngine(newEngine);
-				currentFile = file;
-				makeClean();
-			}*/
-		} catch (Exception e) {
-			/*e.printStackTrace(System.err);
-			JOptionPane.showMessageDialog(this, e,
-					strings.getString("main.error_caption"),
-					JOptionPane.ERROR_MESSAGE);*/
-		}
 	}
+	
 	private Widget makeToolBtn(final MicropolisTool tool, ImageResource image, ImageResource selectedImage) {
 		Image img = new Image(image);
 		ToggleButton btn = new ToggleButton(img,new Image(selectedImage)); 
@@ -779,9 +874,10 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 
 	private Widget makeToolbar() {
 		toolBtns = new HashMap<MicropolisTool, ToggleButton>();
-		FlexTable gridBox = new FlexTable();
+		final FlexTable gridBox = new FlexTable();
 		FlexCellFormatter gridFormater = gridBox.getFlexCellFormatter();
-		gridBox.getElement().getStyle().setBackgroundColor("red");
+		//gridBox.getElement().getStyle().setBackgroundColor("#f5f6fa");
+		gridBox.setStyleName("toolbar-grid");
 		gridBox.getElement().getStyle().setTextAlign(TextAlign.CENTER);
 		
 		int row = 0;
@@ -842,8 +938,23 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		gridFormater.setColSpan(row, 0, 6);
 		gridBox.setWidget(row, 0, makeToolBtn(MicropolisTool.AIRPORT,images.tool_AIRPORT_icon(),images.tool_AIRPORT_selected_icon()));
 
+        row++;
+        gridFormater.setColSpan(row, 0, 6);
+        ToggleButton minimizeButt = new ToggleButton(new Image(images.unminimizeLeft()), new Image(images.minimizeLeft()), new ClickHandler() {
+            private boolean minimized=false;
+            public void onClick(ClickEvent event) {
+                minimized=!minimized;
+                if(minimized){
+                    setWidgetPosition(gridBox,-106,-362);
+                }else{
+                    setWidgetPosition(gridBox,0,20);
+                }
+            }
+        });
+        gridBox.setWidget(row, 0,minimizeButt);
+        minimizeButt.getElement().addClassName("minimize-button-bottom");
 
-		return gridBox;
+        return gridBox;
 	}
 
 	private void selectTool(MicropolisTool newTool) {//mapStateMenuItems
@@ -896,6 +1007,8 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 	private Timer simTimer;
 
 	private Timer shakeTimer;
+
+	private Timer mapDrawStateTimer;
 
 	private void onToolDown(MouseDownEvent event) {
 		if (event.getNativeButton() == NativeEvent.BUTTON_RIGHT) {
@@ -972,16 +1085,13 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		lastX = x;
 		lastY = y;
 	}
-	private boolean onToolHovered = false;
+
 	private void onToolHover(MouseEvent<?> event) {
 		if (currentTool == null || currentTool == MicropolisTool.QUERY) {
 			drawingArea.setToolCursor(null);
 			return;
 		}
-		if (onToolHovered==true){
-			return;
-		}
-		onToolHovered = true;
+
 		int x = event.getX() / MicropolisDrawingArea.TILE_WIDTH;
 		int y = event.getY() / MicropolisDrawingArea.TILE_HEIGHT;
 		int w = currentTool.getWidth();
@@ -993,7 +1103,6 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 			y--;
 
 		drawingArea.setToolCursor(new Rectangle(x, y, w, h), currentTool);
-		onToolHovered=false;
 	}
 
 	private void onToolExited(MouseOutEvent event) {
@@ -1028,17 +1137,16 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		return guiStrings.format("funds", funds);
 	}
 
-	public static String formatGameDate(int cityTime) {
-		return "game date";
-		/*Calendar c = Calendar.getInstance();
-		c.set(1900 + cityTime / 48, (cityTime % 48) / 4, (cityTime % 4) * 7 + 1);
-
-		return MessageFormat.format(strings.getString("citytime"), c.getTime());*/
-	}
 
 	private void updateDateLabel() {
-		dateLbl.setText(Integer.toString(engine.cityTime));
+		dateLbl.setText(formatGameDate(engine.cityTime));
 		popLbl.setText(Integer.toString(getEngine().getCityPopulation()));
+	}
+	public static String formatGameDate(int cityTime){
+		int year = 1990 + cityTime/48;
+		int month = (cityTime%48)/4 + 1;
+		int day =  (cityTime%4)*7 + 1;
+		return day+"."+month+" "+year;
 	}
 
 
@@ -1078,10 +1186,22 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 					}
 				}
 				updateDateLabel();
+				drawingArea.drawToolCursor();
 				dirty2 = true;
 			}
 		};
-		//assert simTimer == null;
+		if (micropolis.client.Micropolis.isDevelopmentMode()==false){
+			mapDrawStateTimer = new Timer() {
+				
+				@Override
+				public void run() {
+					mapView.repaint();
+					mapView.drawMapState();
+				}
+			};
+			//assert simTimer == null;
+			mapDrawStateTimer.scheduleRepeating(1000*1);
+		}
 		simTimer.scheduleRepeating(engine.simSpeed.animationDelay);
 	}
 
@@ -1173,6 +1293,10 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 			shakeTimer.cancel();
 			shakeTimer = null;
 		}
+		if (mapDrawStateTimer!=null){
+			mapDrawStateTimer.cancel();
+			mapDrawStateTimer=null;
+		}
 	}
 
 	boolean isTimerActive() {
@@ -1185,11 +1309,14 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 
 	private void onDifficultyClicked(int newDifficulty) {
 		getEngine().setGameLevel(newDifficulty);
+		//guiStrings.get("menu.difficulty.0")
+		messagesPane.appendMessageText(guiStrings.get("menu.difficulty")+":"+guiStrings.get("menu.difficulty."+newDifficulty));
 	}
 
 	private void onPriorityClicked(Speed newSpeed) {
 		stopTimer();
 		getEngine().setSpeed(newSpeed);
+		messagesPane.appendMessageText(guiStrings.get("menu.speed")+":"+guiStrings.get("menu.speed."+newSpeed.name()));
 		startTimer();
 	}
 
@@ -1302,7 +1429,6 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 	}
 
 	void onViewBudgetClicked() {
-		Window.alert("not implemented yet");
 		dirty1 = true;
 		showBudgetWindow(false);
 	}
@@ -1327,10 +1453,12 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 
 	private void showBudgetWindow(boolean isEndOfYear) {
 		stopTimer();
-		BudgetDialog dlg = new BudgetDialog( getEngine());
-		//dlg.setModal(true);
-		//dlg.setVisible(true);
-		startTimer();
+		budgedDialog.show(new CloseHandler<PopupPanel>() {
+            public void onClose(CloseEvent event) {
+                startTimer();
+            }
+        });
+        budgedDialog.center();
 	}
 
 	private void makeMapStateMenuItem(MenuBar menu,String caption, final MapState state) {
@@ -1343,9 +1471,9 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 
 	private void setMapState(MapState state) {
 		/*mapStateMenuItems.get(mapView.getMapState()).setDown(false);
-		mapStateMenuItems.get(state).setDown(true);
+		mapStateMenuItems.get(state).setDown(true);*/
 		mapView.setMapState(state);
-		setMapLegend(state);*/
+		setMapLegend(state);
 	}
 
 	private void setMapLegend(MapState state) {
@@ -1398,5 +1526,25 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
         dialogContents.setCellHorizontalAlignment(closeButton,HasHorizontalAlignment.ALIGN_RIGHT);
         dialogBox.center();
         dialogBox.show();
+	}
+	
+	private void onUsePromoCodeClicked(){
+		String promo = Window.prompt("Promo Code", "");
+		if (promo.length()>3){
+			LoginServiceAsync loginService = GWT.create(LoginService.class);
+			loginService.checkPromo(promo, new AsyncCallback<Boolean>() {
+				public void onSuccess(Boolean result) {
+					if (result){
+						Window.alert("Success. Your city get 20000 funds");
+						setFunds(20000+engine.budget.totalFunds);
+					}else{
+						Window.alert("Bad promo code");
+					}
+				}
+				public void onFailure(Throwable caught) {
+					Window.alert("some is wrong on server");
+				}
+			});
+		}
 	}
 }

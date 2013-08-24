@@ -95,11 +95,14 @@ public class NewCityDialog extends DialogBox{
 
 		btn = new Button(owner.guiStrings.get("welcome.load_city"),new ClickHandler() {
 			public void onClick(ClickEvent event) {
-				
+				micropolis.client.Micropolis.mainWindow.loadGame();
+				hide();
 			}
 		});
+		if (!micropolis.client.Micropolis.userInfo.logined){
+			btn.setEnabled(false);
+		}
 		buttonPane.add(btn);
-		btn.setEnabled(false);
 
 		btn = new Button(owner.guiStrings.get("welcome.play_this_map"),new ClickHandler() {
 			public void onClick(ClickEvent event) {

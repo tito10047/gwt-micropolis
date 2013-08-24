@@ -1,8 +1,8 @@
-<!-- Indices written at Fri, 7 Jun 2013 21:12:02 CEST -->
+<!-- Indices written at Sat, 24 Aug 2013 14:55:23 CEST -->
 
 <datastore-indexes>
 
-    <!-- Used 8 times in query history -->
+    <!-- Used 1 time in query history -->
     <datastore-index kind="MapInfo" ancestor="true" source="auto">
         <property name="maps_INTEGER_IDX" direction="asc"/>
     </datastore-index>

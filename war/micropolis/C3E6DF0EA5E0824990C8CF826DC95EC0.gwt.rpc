@@ -1,0 +1,17 @@
+com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException, true, true, true, true, com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException/3936916533, 3936916533
+com.google.gwt.user.client.rpc.RpcTokenException, true, true, false, false, com.google.gwt.user.client.rpc.RpcTokenException/2345075298, 2345075298
+com.google.gwt.user.client.rpc.XsrfToken, false, false, true, true, com.google.gwt.user.client.rpc.XsrfToken/4254043109, 4254043109
+[I, true, true, true, true, [I/2970817851, 2970817851
+java.lang.Boolean, true, true, false, false, java.lang.Boolean/476441737, 476441737
+java.lang.Exception, true, false, true, false, java.lang.Exception/1920171873, 1920171873
+java.lang.RuntimeException, true, false, true, false, java.lang.RuntimeException/515124647, 515124647
+java.lang.String, true, true, true, true, java.lang.String/2004016611, 2004016611
+[Ljava.lang.String;, true, true, false, false, [Ljava.lang.String;/2600011424, 2600011424
+java.lang.Throwable, true, false, true, false, java.lang.Throwable/2953622131, 2953622131
+java.util.ArrayList, true, true, false, false, java.util.ArrayList/4159755760, 4159755760
+micropolis.client.user.LoginService, false, false, false, false, _, 631752301
+micropolis.shared.Map, true, true, true, true, micropolis.shared.Map/1278070263, 1278070263
+micropolis.shared.MapInfo, true, true, false, false, micropolis.shared.MapInfo/98135587, 98135587
+micropolis.shared.MapPreview, true, true, false, false, micropolis.shared.MapPreview/2374932472, 2374932472
+[Lmicropolis.shared.MapPreview;, true, true, false, false, [Lmicropolis.shared.MapPreview;/3203905321, 3203905321
+micropolis.shared.UserInfo, true, true, false, false, micropolis.shared.UserInfo/3380531475, 3380531475

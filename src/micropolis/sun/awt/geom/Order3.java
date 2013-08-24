@@ -31,7 +31,6 @@ import micropolis.java.awt.geom.PathIterator;
 import micropolis.java.awt.geom.QuadCurve2D;
 import micropolis.java.awt.geom.Rectangle2D;
 
-@SuppressWarnings("all")
 final class Order3 extends Curve {
     private double x0;
     private double y0;
@@ -55,7 +54,7 @@ final class Order3 extends Curve {
     private double ycoeff2;
     private double ycoeff3;
 
-    public static void insert(Vector curves, double tmp[],
+    public static void insert(Vector<Curve> curves, double tmp[],
                               double x0, double y0,
                               double cx0, double cy0,
                               double cx1, double cy1,
@@ -107,7 +106,7 @@ final class Order3 extends Curve {
         }
     }
 
-    public static void addInstance(Vector curves,
+    public static void addInstance(Vector<Curve> curves,
                                    double x0, double y0,
                                    double cx0, double cy0,
                                    double cx1, double cy1,

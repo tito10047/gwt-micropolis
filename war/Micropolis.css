@@ -29,3 +29,75 @@ table{
 .game_info_panel, .game_info_panel table{
 	line-height: 12px;
 }
+canvas {
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+.toolbar-grid{
+	background-color: #f5f6fa;
+}
+.game-info-panel{
+	background-color: #f5f6fa;
+	line-height: 12px;
+}
+.message-panel{
+	background-color: #f5f6fa;
+}
+.message-panel>div>div{
+    padding: 16px 0 0 4px;
+}
+.notification-pane{
+	background-color: #f5f6fa;
+}
+.status-grid{
+	margin: 3px;
+}
+.minimize-button{
+    outline: 0;
+    position: absolute;
+    right: 5px;
+    top: 1px;
+    border: none;
+}
+.minimize-button-left{
+    outline: 0;
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    border: none;
+}
+.minimize-button-bottom{
+    outline: 0;
+    position: absolute;
+    right: 2px;
+    bottom: -3px;
+    border: none;
+}
+.gwt-MenuBar>table{
+    margin-left: 20px;
+}
+.map-view-container {
+
+}
+
+.header-lbl {
+
+}
+
+.gwt-TextBox{
+    padding: 0;
+}
+.howered{
+	width:200px;
+}
+.howered:HOVER{
+	background-color: silver;
+}
+.selected{
+	background-color: aqua;
+}
+.selectable{
+	cursor: pointer;
+}

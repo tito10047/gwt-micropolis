@@ -33,10 +33,13 @@ public class GuiStrings {
 		put("main.version_string","Version {0} (Java %java.version%, %java.vendor%)");
 		put("main.caption_unnamed_city","Micropolis");
 		put("main.caption_named_city","{0} - Micropolis");
-		put("main.about_text","<html><p>Copyright 2013 Jozef Môstka<br>Portions Copyright 1989-2007 Electronic Arts Inc.</p><p>This is free software; you can redistribute it and/or modify it <br>under the terms of the GNU GPLv3; see the README file for details.</p><p>There is no warranty, to the extent permitted by law.</p><p>For source code, go to http://code.google.com/p/micropolis/.</p></html>");
+		put("main.about_text","<html><p>Copyright 2013 Jozef Môstka<br>Portions Copyright 1989-2007 Electronic Arts Inc.</p><p>This is free software; you can redistribute it and/or modify it <br>under the terms of the GNU GPLv3; see the README file for details.</p><p>There is no warranty, to the extent permitted by law.</p><p>For source code, go to:<br>https://code.google.com/p/gwt-micropolis/<br> http://code.google.com/p/micropolis/.</p></html>");
 		put("cty_file","CTY file");
 		put("funds","${0}");
 		put("citytime","{0}");
+
+		put("on","on");
+		put("off","off");
 
 		//
 		// Welcome screen
@@ -313,6 +316,7 @@ public class GuiStrings {
 		put("notification.crime_lbl","Crime:");
 		put("notification.pollution_lbl","Pollution:");
 		put("notification.growth_lbl","Growth:");
+		
 
 	}};
 	public String get(String key){

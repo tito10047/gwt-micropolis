@@ -1,6 +1,8 @@
 package micropolis.client;
 
+import com.google.gwt.user.client.ui.*;
 import micropolis.client.engine.MapGenerator;
+import micropolis.client.gui.ImageLoader;
 import micropolis.client.gui.MainWindow;
 import micropolis.client.user.LoginService;
 import micropolis.client.user.LoginServiceAsync;
@@ -14,13 +16,15 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.ContextMenuEvent;
 import com.google.gwt.event.dom.client.ContextMenuHandler;
+import com.google.gwt.event.dom.client.LoadEvent;
+import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.Window.Navigator;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Anchor;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.InlineHTML;
-import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style.Unit;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -32,8 +36,8 @@ public class Micropolis implements EntryPoint {
 	public static native void close() /*-{
 	   window.close();
 	}-*/;
-	public static MainWindow mainWindow;
-	static public String version = "v1.4dev; last update:7.6.2013";
+	public static MainWindow mainWindow=null;
+	static public String version = "v1.9; last update:24.8.2013";
 	
 	public static UserInfo userInfo = new UserInfo();
 	  
@@ -45,20 +49,105 @@ public class Micropolis implements EntryPoint {
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		Window.enableScrolling(false);
-		RootPanel.get().addDomHandler(new ContextMenuHandler()  {
-			public void onContextMenu(ContextMenuEvent event) {
-				event.preventDefault();
-				event.stopPropagation();
-			}
-		}, ContextMenuEvent.getType());
+        RootPanel.get("hide").setVisible(false);
 
-		loadGame();
-		getUser();
+        if (Window.Location.getHash().startsWith("#admin")){
+            loginUser(new Callback<UserInfo, Throwable>() {
+                public void onFailure(Throwable caught) {
+                    micropolis.client.Micropolis.log(caught);
+                    Window.alert("cant login\n"+caught.getMessage());
+                }
+                public void onSuccess(UserInfo result) {
+                    if (result.email.equals("mostka.j@gmail.com")){
+                        loadAdmin(Window.Location.getHash());
+                    }else{
+                        Window.alert("Unauthorized access");
+                    }
+                }
+            });
+
+        }else if (Window.Location.getHash().startsWith("#show_promo")){
+        	showPromo();
+        }else{
+            Window.enableScrolling(false);
+            RootPanel.get().addDomHandler(new ContextMenuHandler()  {
+                public void onContextMenu(ContextMenuEvent event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            }, ContextMenuEvent.getType());
+
+            ImageLoader.load(new LoadHandler() {
+                public void onLoad(LoadEvent event) {
+                    getUser();
+                }
+            });
+        }
 	}
 
-	
-	public void loadGame(){
+    private void loadAdmin(String hash) {
+        LoginServiceAsync loginService = GWT.create(LoginService.class);
+        if (hash.contains("users")){
+	        loginService.getUsersId(new AsyncCallback<String[]>() {
+	            public void onFailure(Throwable caught) {
+	                micropolis.client.Micropolis.log(caught);
+	                Window.alert("failedn"+caught.getMessage());
+	            }
+	            public void onSuccess(String[] result) {
+	                VerticalPanel vp = new VerticalPanel();
+	                vp.add(new HTML("var list = ["));
+	                for (String aResult : result) {
+	                    vp.add(new HTML("'"+aResult+"',"));
+	                }
+	                vp.add(new HTML("]"));
+	                RootPanel.get().add(vp);
+	            }
+	        });
+        }
+        if (hash.contains("promoAdd")){
+        	String string = Window.prompt("count of promot to add", "10");
+        	int num = Integer.parseInt(string);
+        	loginService.generatePromo(num, new AsyncCallback<Boolean>() {
+				public void onSuccess(Boolean result) {
+					if (result){
+						Window.alert("ok");
+					}else{
+						Window.alert("failed");
+					}
+				}
+				public void onFailure(Throwable caught) {
+					Window.alert("fatal failed");
+				}
+			});
+        }
+        if (hash.contains("promo")){
+        	showPromo();
+        }
+    }
+    
+    private void showPromo(){
+        LoginServiceAsync loginService = GWT.create(LoginService.class);
+    	loginService.getPromo(new AsyncCallback<String[]>() {
+			
+			@Override
+			public void onSuccess(String[] result) {
+                VerticalPanel vp = new VerticalPanel();
+                vp.getElement().getStyle().setProperty("margin", "auto");
+                vp.getElement().getStyle().setMarginTop(30, Unit.PX);
+                for (String aResult : result) {
+                    vp.add(new HTML(aResult));
+                }
+                RootPanel.get().add(vp);
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+				Window.alert("Fatal errir");
+			}
+		});
+    }
+
+    public void loadGame(){
 		RootPanel.get().clear();
 		micropolis.client.engine.Micropolis engine = new micropolis.client.engine.Micropolis();
 		if (isDevelopmentMode()){
@@ -68,7 +157,7 @@ public class Micropolis implements EntryPoint {
 		mainWindow = new MainWindow(engine);
 		mainWindow.setHeight("100%");
 		RootPanel.get().add(mainWindow);
-		if (isDevelopmentMode()==false){
+		if (!isDevelopmentMode()){
 			mainWindow.doNewCity(true);
 		}
 	}
@@ -78,6 +167,7 @@ public class Micropolis implements EntryPoint {
 		loginService.getUser(new AsyncCallback<UserInfo>() {
 			public void onSuccess(UserInfo result) {
 				userInfo = result;
+				loadGame();
 				if (result.logined){
 					mainWindow.messagesPane.appendMessageText("logined as "+result.email);
 				}else{
@@ -108,8 +198,8 @@ public class Micropolis implements EntryPoint {
 		String GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, PLUS_ME_SCOPE;
 		if (isDevelopmentMode()){
 			GOOGLE_CLIENT_ID = "574858033179-8s3dv9p95geevremepttqma0ft65ludu.apps.googleusercontent.com";
-			AUTH.setOAuthWindowUrl(GWT.getHostPageBaseURL() + "oauthWindow.html");
 		}else{
+			AUTH.setOAuthWindowUrl(GWT.getHostPageBaseURL() + "oauthWindow.html");
 			GOOGLE_CLIENT_ID = "531275634689.apps.googleusercontent.com";
 		}
 		GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/auth";
@@ -131,7 +221,9 @@ public class Micropolis implements EntryPoint {
 					public void onSuccess(UserInfo result) {
 						userInfo=result;
 						if (userInfo.logined){
-							mainWindow.messagesPane.appendMessageText("logined as "+result.email);
+                            if (mainWindow!=null){
+							    mainWindow.messagesPane.appendMessageText("logined as "+result.email);
+                            }
 						}else{
 							Window.alert("some is wrong with login. try again later");
 							log(result);

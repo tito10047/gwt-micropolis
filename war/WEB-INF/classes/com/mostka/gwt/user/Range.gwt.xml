@@ -1,0 +1,9 @@
+<module>
+    <inherits name="com.google.gwt.core.Core"/>
+    <inherits name="com.google.gwt.user.UserAgent"/>
+    <inherits name="com.google.gwt.i18n.I18N"/>
+    <inherits name="com.google.gwt.editor.Editor"/>
+    <inherits name="com.mostka.gwt.dom.DOM"/>
+    <inherits name="com.mostka.gwt.editor.Editor"/>
+
+</module>

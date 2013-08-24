@@ -9,6 +9,7 @@ import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
 
+@SuppressWarnings("serial")
 @PersistenceCapable
 public class MapInfo implements Serializable{
 	

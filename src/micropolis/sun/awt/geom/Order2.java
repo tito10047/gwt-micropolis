@@ -32,7 +32,7 @@ import micropolis.java.awt.geom.PathIterator;
 import micropolis.java.awt.geom.Rectangle2D;
 
 
-@SuppressWarnings("all")
+
 final class Order2 extends Curve {
     private double x0;
     private double y0;
@@ -50,7 +50,7 @@ final class Order2 extends Curve {
     private double ycoeff1;
     private double ycoeff2;
 
-    public static void insert(Vector curves, double tmp[],
+    public static void insert(Vector<Curve> curves, double tmp[],
                               double x0, double y0,
                               double cx0, double cy0,
                               double x1, double y1,
@@ -77,7 +77,7 @@ final class Order2 extends Curve {
                     tmp[i1 + 4], tmp[i1 + 5], direction);
     }
 
-    public static void addInstance(Vector curves,
+    public static void addInstance(Vector<Curve> curves,
                                    double x0, double y0,
                                    double cx0, double cy0,
                                    double x1, double y1,

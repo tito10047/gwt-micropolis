@@ -30,7 +30,7 @@ import java.util.Vector;
 
 import micropolis.java.awt.geom.PathIterator;
 
-@SuppressWarnings("all")
+
 public abstract class Crossings {
     public static final boolean debug = false;
 
@@ -79,7 +79,7 @@ public abstract class Crossings {
 
     public abstract boolean covers(double ystart, double yend);
 
-    public static Crossings findCrossings(Vector curves,
+    public static Crossings findCrossings(Vector<Curve> curves,
                                           double xlo, double ylo,
                                           double xhi, double yhi)
     {
@@ -239,7 +239,7 @@ public abstract class Crossings {
         return false;
     }
 
-    private Vector tmp = new Vector();
+    private Vector<Curve> tmp = new Vector<Curve>();
 
     public boolean accumulateQuad(double x0, double y0, double coords[]) {
         if (y0 < ylo && coords[1] < ylo && coords[3] < ylo) {

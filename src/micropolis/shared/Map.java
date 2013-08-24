@@ -8,6 +8,7 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+@SuppressWarnings("serial")
 @PersistenceCapable
 public class Map implements Serializable, micropolis.client.engine.Map{
 
@@ -33,6 +34,8 @@ public class Map implements Serializable, micropolis.client.engine.Map{
 	private int[] historyMoney;
 	@Persistent
 	private String map;
+	// map preview
+	private String mapPreview=null;
 	
 	private short resPop;
 	@Persistent
@@ -82,11 +85,12 @@ public class Map implements Serializable, micropolis.client.engine.Map{
 
 	//58
 	@Persistent
-	private int policePercent;
+	private short policePercent;
 	@Persistent
-	private int firePercent;
+	private short firePercent;
 	@Persistent
-	private int roadPercent;
+	private short roadPercent;
+	
 	
 	public int[] getHistoryRes() {
 		return historyRes;
@@ -251,27 +255,32 @@ public class Map implements Serializable, micropolis.client.engine.Map{
 		this.cityTax = cityTax;
 	}
 
-	public int getPolicePercent() {
+	public short getPolicePercent() {
 		return policePercent;
 	}
-	public void setPolicePercent(int policePercent) {
+	public void setPolicePercent(short policePercent) {
 		this.policePercent = policePercent;
 	}
-	public int getFirePercent() {
+	public short getFirePercent() {
 		return firePercent;
 	}
-	public void setFirePercent(int firePercent) {
+	public void setFirePercent(short firePercent) {
 		this.firePercent = firePercent;
 	}
-	public int getRoadPercent() {
+	public short getRoadPercent() {
 		return roadPercent;
 	}
-	public void setRoadPercent(int roadPercent) {
+	public void setRoadPercent(short roadPercent) {
 		this.roadPercent = roadPercent;
 	}
 
 	//64
-
+	public void setMapPreview(String data){
+		this.mapPreview = data;
+	}
+	public String getMapPreview(){
+		return this.mapPreview;
+	}
 	
 	
 }

@@ -2132,12 +2132,12 @@ public class Micropolis
 		//54
 		map.setAutoGo(autoGo);
 		//userSoundOn
-		map.setCityTax((short) cityTax);
+		map.setCityTax((short) (cityTax*100));
 
 		//58
-		map.setPolicePercent((short) policePercent);
-		map.setFirePercent((short) firePercent);
-		map.setRoadPercent((short) roadPercent);
+		map.setPolicePercent((short) (policePercent*100));
+		map.setFirePercent((short) (firePercent*100));
+		map.setRoadPercent((short) (roadPercent*100));
 		
 		checkPowerMap();
 		fireWholeMapChanged();
@@ -2181,13 +2181,13 @@ public class Micropolis
 		//54
 		autoGo = map.isAutoGo();
 		//userSoundOn
-		cityTax = map.getCityTax();
+		cityTax = map.getCityTax()/100;
 		simSpeed = Speed.NORMAL;
 		
 		//58
-		policePercent = map.getPolicePercent();
-		firePercent = map.getFirePercent();
-		roadPercent = map.getRoadPercent();
+		policePercent = ((double)map.getPolicePercent())/100;
+		firePercent = ((double)map.getFirePercent())/100;
+		roadPercent = ((double)map.getRoadPercent())/100;
 		
 		return true;
 	}

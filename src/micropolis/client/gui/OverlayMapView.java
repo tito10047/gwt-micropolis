@@ -48,7 +48,7 @@ public class OverlayMapView implements MapListener{
 		width = 360;
 		height = 300;
 		ctx = canvas.getContext2d();
-		tileImages = loadImage("./resources/tilessm.png");
+		tileImages = ImageLoader.getTitleMiniImages();
 		canvas.addMouseDownHandler(new MouseDownHandler() {
 			public void onMouseDown(MouseDownEvent event) {
 				draged=true;
@@ -114,28 +114,12 @@ public class OverlayMapView implements MapListener{
 
 		mapState = newState;
 		repaint();
+		drawMapState();
 	}
 
 	static final int TILE_WIDTH = 3;
 	static final int TILE_HEIGHT = 3;
 	static final int TILE_OFFSET_Y = 3;
-	
-	public Image loadImage(String resourceName){
-		Image img = new Image(resourceName);
-		Image.prefetch(resourceName);
-		img.addLoadHandler(new LoadHandler() {
-			public void onLoad(LoadEvent event) {
-				Timer t = new Timer() {
-					public void run() {
-						repaint();
-					}
-				};
-				repaint();
-				t.schedule(1000);
-			}
-		});
-		return img;
-	}
 
 	static final CssColor VAL_LOW = CssColor.make("#bfbfbf");
 	static final CssColor VAL_MEDIUM = CssColor.make("#ffff00");
@@ -308,10 +292,9 @@ public class OverlayMapView implements MapListener{
 		
 		int maxX = Math.min(width, 1 + (xx + ww - 1)/ TILE_WIDTH);
 		int maxY = Math.min(height, 1 + (yy + hh - 1)/ TILE_HEIGHT);
-		/*micropolis.client.Micropolis.log("minX "+minX);
-		micropolis.client.Micropolis.log("minY "+minY);
-		micropolis.client.Micropolis.log("maxX "+maxX);
-		micropolis.client.Micropolis.log("maxY"+maxY);*/
+
+		ctx.clearRect(minX, minY, maxX - minX, maxY - minY);
+		
 		for (int y = minY; y < maxY; y++) {
 			for (int x = minX; x < maxX; x++) {
 				int tile = engine.getTile(x, y) & LOMASK;
@@ -371,6 +354,21 @@ public class OverlayMapView implements MapListener{
 		//gr = gr.create();
 		//gr.translate(INSETS.left, INSETS.top);
 
+
+		for (ConnectedView cv : views) {
+			Rectangle rect = getViewRect(cv);
+			ctx.setFillStyle("white");
+			ctx.fillRect(rect.x - 2, rect.y - 2, rect.width + 2, rect.height + 2);
+
+			ctx.setFillStyle("black");
+			ctx.fillRect(rect.x - 0, rect.y - 0, rect.width + 2, rect.height + 2);
+
+			ctx.setFillStyle("yellow");
+			ctx.fillRect(rect.x - 1, rect.y - 1, rect.width + 2, rect.height + 2);
+		}
+	}
+	
+	public void drawMapState(){
 		switch (mapState) {
 		case POLICE_OVERLAY:
 			drawPoliceRadius();
@@ -397,18 +395,6 @@ public class OverlayMapView implements MapListener{
 			drawPopDensity();
 			break;
 		default:
-		}
-
-		for (ConnectedView cv : views) {
-			Rectangle rect = getViewRect(cv);
-			ctx.setFillStyle("white");
-			ctx.fillRect(rect.x - 2, rect.y - 2, rect.width + 2, rect.height + 2);
-
-			ctx.setFillStyle("black");
-			ctx.fillRect(rect.x - 0, rect.y - 0, rect.width + 2, rect.height + 2);
-
-			ctx.setFillStyle("yellow");
-			ctx.fillRect(rect.x - 1, rect.y - 1, rect.width + 2, rect.height + 2);
 		}
 	}
 
@@ -478,13 +464,13 @@ public class OverlayMapView implements MapListener{
 
 	// implements MapListener
 	public void tileChanged(int xpos, int ypos) {
-		Rectangle r = new Rectangle(xpos * TILE_WIDTH, ypos * TILE_HEIGHT,TILE_WIDTH, TILE_HEIGHT);
-		repaint(r);
+		//Rectangle r = new Rectangle(xpos * TILE_WIDTH, ypos * TILE_HEIGHT,TILE_WIDTH, TILE_HEIGHT);
+		//repaint(r);
 	}
 
 	// implements MapListener
 	public void wholeMapChanged() {
-		repaint();
+		//repaint();
 		engine.calculateCenterMass();
 		dragViewToCityCenter();
 	}

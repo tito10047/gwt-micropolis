@@ -39,11 +39,13 @@ public class NotificationPane extends AbsolutePanel{
 	public NotificationPane(Micropolis engine) {
 
 		setSize(NotificationPane.WIDTH+"px", NotificationPane.HEIGHT+"px");
-		getElement().getStyle().setBackgroundColor("blue");
+		//getElement().getStyle().setBackgroundColor("#f5f6fa");
+		setStyleName("notification-pane");
 		ensureDebugId("NotificationPane");
 
 		headerLbl = new HTML();
-		headerLbl.getElement().getStyle().setBackgroundColor("green");
+		//headerLbl.getElement().getStyle().setBackgroundColor("green");
+		headerLbl.setStyleName("header-lbl");
 		headerLbl.setSize("200px", "20px");
 		headerLbl.getElement().getStyle().setTextAlign(TextAlign.CENTER);
 		add(headerLbl,NotificationPane.WIDTH/2-200/2,0);
@@ -97,7 +99,8 @@ public class NotificationPane extends AbsolutePanel{
 
 		HTML myLabel = new HTML("<html><p>"+ mstrings.get(msg.name() + ".detail") + "</p></html>");
 		myLabel.setSize("150px", "120px");
-		myLabel.getElement().getStyle().setBackgroundColor("green");
+		//myLabel.getElement().getStyle().setBackgroundColor("green");
+		myLabel.setStyleName("message");
 
 		infoPane = myLabel;
 		add(myLabel,150,30);
@@ -116,7 +119,8 @@ public class NotificationPane extends AbsolutePanel{
 
 
 		Grid grid = new Grid(6, 2);
-		grid.getElement().getStyle().setBackgroundColor("green");
+		//grid.getElement().getStyle().setBackgroundColor("green");
+		grid.setStyleName("status-grid");
 		grid.setSize("150px", "0");
 		add(grid,150,30);
 

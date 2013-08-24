@@ -18,7 +18,12 @@ public class MapData {
 	@Persistent
 	public Text mapData;
 	
-	public MapData(String map) {
+	@Persistent
+	public Text mapPreviewData=null;
+	
+	public MapData(String map, String preview) {
 		mapData = new Text(map);
+		mapPreviewData = new Text(preview);
 	}
+	
 }
