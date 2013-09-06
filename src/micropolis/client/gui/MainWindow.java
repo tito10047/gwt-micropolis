@@ -184,6 +184,9 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		graphsPane = new GraphsPane(engine);
 		evaluationPane = new EvaluationPane(engine);
 
+		final MusicPlayer player = new MusicPlayer();
+		add(player, RootPanel.get().getOffsetWidth()-190,20+48);
+		
 		final HorizontalPanel gameInfoPanel = new HorizontalPanel(); 
 		gameInfoPanel.setWidth("180px");
 		//gameInfoPanel.getElement().getStyle().setBackgroundColor("#f5f6fa");
@@ -289,6 +292,7 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
 		notificationPane = new NotificationPane(engine);
 		add(notificationPane,RootPanel.get().getOffsetWidth()-(MessagesPane.WIDTH+notificationPane.WIDTH),RootPanel.get().getOffsetHeight()-notificationPane.HEIGHT);
 		
+		
 		Window.addResizeHandler(new ResizeHandler() {
 			public void onResize(ResizeEvent event) {
 				int height = event.getHeight();
@@ -297,7 +301,8 @@ public class MainWindow extends AbsolutePanel implements Micropolis.Listener, Ea
                 }else{
 				    setWidgetPosition(messagesPane,RootPanel.get().getOffsetWidth()-MessagesPane.WIDTH,RootPanel.get().getOffsetHeight()-MessagesPane.HEIGHT);
                 }
-				setWidgetPosition(gameInfoPanel,RootPanel.get().getOffsetWidth()-180,20);
+				setWidgetPosition(gameInfoPanel,RootPanel.get().getOffsetWidth()-190,20);
+				setWidgetPosition(player, RootPanel.get().getOffsetWidth()-190,20+gameInfoPanel.getOffsetHeight());
 				setWidgetPosition(notificationPane,RootPanel.get().getOffsetWidth()-(MessagesPane.WIDTH+notificationPane.WIDTH),RootPanel.get().getOffsetHeight()-notificationPane.HEIGHT);
 				scPanel.setSize(RootPanel.get().getOffsetWidth()+20+"px",( RootPanel.get().getOffsetHeight()-20+21)+"px");
                 if (minimapMinimized){
