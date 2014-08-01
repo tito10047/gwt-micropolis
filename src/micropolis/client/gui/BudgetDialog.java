@@ -12,20 +12,18 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.*;
-import com.mostka.gwt.user.client.ui.NumberBox;
-import com.mostka.gwt.user.client.ui.RangeBox;
 import micropolis.client.engine.*;
 
 public class BudgetDialog extends DialogBox {
-    private final NumberBox taxRateHdrInput;
+    private final TextBox taxRateHdrInput;
     private final HTML annualReceiptsHdr;
-    private final RangeBox fondRoadFoundingLevelHdrRange;
+    private final TextBox fondRoadFoundingLevelHdrRange;
     private final HTML fondRoadRequestedHdrLabel;
     private final HTML fondRoadAllocationHdrLabel;
     private final HTML policeRoadAllocationHdrLabel;
-    private final RangeBox policeRoadFoundingLevelHdrRange;
+    private final TextBox policeRoadFoundingLevelHdrRange;
     private final HTML policeRoadRequestedHdrLabel;
-    private final RangeBox fireRoadFoundingLevelHdrRange;
+    private final TextBox fireRoadFoundingLevelHdrRange;
     private final HTML fireRoadRequestedHdrLabel;
     private final HTML fireRoadAllocationHdrLabel;
     private final CheckBox autoBudgetCheck;
@@ -44,6 +42,7 @@ public class BudgetDialog extends DialogBox {
     public BudgetDialog(Micropolis engine) {
 		/*super(owner);
 		setTitle(strings.getString("budgetdlg.title"));*/
+
 
         getCellElement(0, 1).getStyle().setCursor(Style.Cursor.MOVE);
         Element dialogTopRight = getCellElement(0, 2);
@@ -73,7 +72,10 @@ public class BudgetDialog extends DialogBox {
         gridFormater.setColSpan(row, 0, 2);
         gridFormater.setColSpan(row, 1, 2);
         gridFormater.setColSpan(row, 2, 2);
-        taxRateHdrInput = new NumberBox(0,20);
+        taxRateHdrInput = new TextBox(/*0,20*/);
+    	taxRateHdrInput.getElement().setAttribute("type", "number");
+        taxRateHdrInput.getElement().setAttribute("min", "0");
+        taxRateHdrInput.getElement().setAttribute("max", "20");
         taxRateHdrInput.addChangeHandler(changeHandler);
         annualReceiptsHdr = new HTML();
         table.setWidget(row, 0, new HTML(MainWindow.guiStrings.get("budgetdlg.tax_revenue")));
@@ -92,7 +94,11 @@ public class BudgetDialog extends DialogBox {
 
         row++;
         gridFormater.setColSpan(row, 2, 2);
-        fondRoadFoundingLevelHdrRange = new RangeBox(0,100);
+        fondRoadFoundingLevelHdrRange = new TextBox(/*0,100*/);
+    	fondRoadFoundingLevelHdrRange.getElement().setAttribute("type", "range");
+        fondRoadFoundingLevelHdrRange.getElement().setAttribute("min", "0");
+        fondRoadFoundingLevelHdrRange.getElement().setAttribute("max", "100");
+        
         fondRoadFoundingLevelHdrRange.setWidth(100+"px");
         fondRoadFoundingLevelHdrRange.addChangeHandler(changeHandler);
         fondRoadRequestedHdrLabel = new HTML();
@@ -104,7 +110,10 @@ public class BudgetDialog extends DialogBox {
 
         row++;
         gridFormater.setColSpan(row, 2, 2);
-        policeRoadFoundingLevelHdrRange = new RangeBox(0,100);
+        policeRoadFoundingLevelHdrRange = new TextBox(/*0,100*/);
+    	policeRoadFoundingLevelHdrRange.getElement().setAttribute("type", "range");
+        policeRoadFoundingLevelHdrRange.getElement().setAttribute("min", "0");
+        policeRoadFoundingLevelHdrRange.getElement().setAttribute("max", "100");
         policeRoadFoundingLevelHdrRange.setWidth(100+"px");
         policeRoadFoundingLevelHdrRange.addChangeHandler(changeHandler);
         policeRoadRequestedHdrLabel = new HTML();
@@ -116,7 +125,10 @@ public class BudgetDialog extends DialogBox {
 
         row++;
         gridFormater.setColSpan(row, 2, 2);
-        fireRoadFoundingLevelHdrRange = new RangeBox(0,100);
+        fireRoadFoundingLevelHdrRange = new TextBox(/*0,100*/);
+    	fireRoadFoundingLevelHdrRange.getElement().setAttribute("type", "range");
+        fireRoadFoundingLevelHdrRange.getElement().setAttribute("min", "0");
+        fireRoadFoundingLevelHdrRange.getElement().setAttribute("max", "100");
         fireRoadFoundingLevelHdrRange.setWidth(100+"px");
         fireRoadFoundingLevelHdrRange.addChangeHandler(changeHandler);
         fireRoadRequestedHdrLabel = new HTML();
@@ -251,10 +263,10 @@ public class BudgetDialog extends DialogBox {
     }
 
 	private void applyChange() {
-		int newTaxRate = (int)(double) taxRateHdrInput.getValue();
-		int newRoadPct = (int)(double) fondRoadFoundingLevelHdrRange.getValue();
-		int newPolicePct = (int)(double) policeRoadFoundingLevelHdrRange.getValue();
-		int newFirePct = (int)(double) fireRoadFoundingLevelHdrRange.getValue();
+		int newTaxRate = Integer.parseInt(taxRateHdrInput.getValue());
+		int newRoadPct = Integer.parseInt(fondRoadFoundingLevelHdrRange.getValue());
+		int newPolicePct = Integer.parseInt( policeRoadFoundingLevelHdrRange.getValue());
+		int newFirePct = Integer.parseInt( fireRoadFoundingLevelHdrRange.getValue());
 
 		engine.cityTax = checkRange(newTaxRate,0,20);
 		engine.roadPercent = (double) checkRange(newRoadPct,0,100) / 100.0;
@@ -271,9 +283,9 @@ public class BudgetDialog extends DialogBox {
 		BudgetNumbers b = engine.generateBudget();
 		if (updateEntries) {
             taxRateHdrInput.setText(b.taxRate + "");
-			fondRoadFoundingLevelHdrRange.setValue((double) Math.round(b.roadPercent * 100.0));
-			policeRoadFoundingLevelHdrRange.setValue((double) Math.round(b.policePercent * 100.0));
-			fireRoadFoundingLevelHdrRange.setValue((double) Math.round(b.firePercent * 100.0));
+			fondRoadFoundingLevelHdrRange.setValue( Math.round(b.roadPercent * 100.0)+"");
+			policeRoadFoundingLevelHdrRange.setValue( Math.round(b.policePercent * 100.0)+"");
+			fireRoadFoundingLevelHdrRange.setValue( Math.round(b.firePercent * 100.0)+"");
 		}
         annualReceiptsHdr.setText("$"+b.taxIncome);
 
