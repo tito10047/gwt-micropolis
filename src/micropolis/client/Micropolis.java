@@ -36,7 +36,7 @@ public class Micropolis implements EntryPoint {
 	   window.close();
 	}-*/;
 	public static MainWindow mainWindow=null;
-	static public String version = "v1.9; last update:24.8.2013";
+	static public String version = "v1.9; last update:1.8.2014";
 	
 	public static UserInfo userInfo = new UserInfo();
 	  
@@ -199,7 +199,7 @@ public class Micropolis implements EntryPoint {
 			GOOGLE_CLIENT_ID = "574858033179-8s3dv9p95geevremepttqma0ft65ludu.apps.googleusercontent.com";
 		}else{
 			AUTH.setOAuthWindowUrl(GWT.getHostPageBaseURL() + "oauthWindow.html");
-			GOOGLE_CLIENT_ID = "531275634689.apps.googleusercontent.com";
+			GOOGLE_CLIENT_ID = "1020252215344-ue7hupv3urro6btinodsbg9sqrejt1ad.apps.googleusercontent.com";
 		}
 		GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/auth";
 		PLUS_ME_SCOPE = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile";
